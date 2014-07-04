@@ -1,10 +1,9 @@
 <?php
 include './lang/ru.php';
 include 'config.php';
-define ('SEP', "/");
 $folder = dirname(__FILE__);
-$theme_path_files = '.' . SEP . 'images' . SEP . 'themes' . SEP . THEME .  SEP . 'icons' . SEP . 'files' . SEP;
 
+$theme_path_files = '.' . SEP . 'images' . SEP . 'themes' . SEP . THEME .  SEP . 'icons' . SEP . 'files' . SEP;
 
 $folder_icon = $theme_path_files . 'folder.png';
 
@@ -82,10 +81,17 @@ function getFiles($folder) {
 }
 
 function getExtension($filename){
+	
+	if (substr($filename, 0, 1) == '.'){
+		return $filename;
+	}
 	return array_pop(explode('.', $filename));
 }
 
 function removeExtension($filename){
+	if (substr($filename, 0, 1) == '.'){
+		return '';
+	}
 	$arr = explode('.', $filename);
 	array_pop($arr);
 	return implode('.', $arr);

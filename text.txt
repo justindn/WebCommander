@@ -1,0 +1,1 @@
+a:3:{s:6:"action";s:3:"del";s:4:"name";s:12:"er1rors1.txt";s:4:"path";s:31:"Z:\home\localhost\www\commander";}
