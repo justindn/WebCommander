@@ -279,6 +279,20 @@ include 'config.php';
 				case 113: //F2
 					rename();
 					break;
+				case 114: //F3
+					if (line.attr('data-is-folder') != 'true'){
+						$('#viewer').toggle();
+						$('#viewer_header').html(line.attr('data-folder') + '/' + line.attr('data-filename'));
+						$.ajax({
+							cache : false, 
+							type  : 'POST',
+							url   : 'operations.php',
+							data  : 'action=getfile&folder=' + line.attr('data-folder'),
+						}).done(function (data){
+							$('#viewer_content').html('<pre>' + data + '</pre>');
+						});	
+					}
+					break;
 				case 119: //F8
 				case 46:  //Delete
 					unlink();
@@ -292,9 +306,9 @@ include 'config.php';
 					}
 					break;
 				case 32:  //Space
+					line.toggleClass('selected');
 					if (line.attr('data-is-folder') == 'true'){
 						getDirSize(line.attr('data-folder'), line.children('td:eq(2)'));
-						
 					}
 				  break;
 			}
@@ -304,6 +318,9 @@ include 'config.php';
 		
 		$('#f2').click(function(){
 			rename();
+		});
+		$('#f3').click(function(){
+			$('#viewer').show();
 		});
 		$('#f7').click(function(){
 			newdir();
@@ -315,13 +332,25 @@ include 'config.php';
 		//	event.preventDefault();
 		// alert(event.button);
 		});
+		/*VIEWER*/
+		$('#viewer_close').click(function(){
+			$('#viewer').hide();
+		});
 		
 	});
 </script>
 </head>
 
 <body>
-
+<div id='viewer'>
+	<header>
+		<span id='viewer_header'></span>
+		<div id='viewer_close'>&times;</div>
+	</header>
+	<div id='viewer_content'>
+		text
+	</div>
+</div>
 <div id = 'container'>
 	<div id = 'toolbar'></div>
 		<div class = 'panel'>
