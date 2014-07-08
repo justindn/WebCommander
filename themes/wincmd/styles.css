@@ -89,6 +89,9 @@
 		height:4%;
 		clear:both;
 	}
+	#bottom_panel button{
+		width:13.5%;
+	}
 	thead , tbody{
 		
 	}
@@ -96,4 +99,7 @@
 		text-indent:17px;
 		background-position:center left;
 		background-repeat:no-repeat;
+	}
+	.selected {
+		color:#ff0000;
 	}

@@ -1,0 +1,139 @@
+@font-face{
+
+}
+	*{
+		font-family:TerminalVector;
+		color:#00FFFF;
+		font-size:12pt;
+	}
+	html, body{
+		height:100%;
+		padding:0;
+		margin:0;
+		font-size:0.85em;
+		background-color:#000000;
+		
+	}
+	#container{
+		width:98%;
+		height:96%;
+		margin:auto;
+		position:absolute;
+		top:0;
+		left:0;
+		bottom:0;
+		right:0;
+		background-color:#000080;
+		border:2px solid #00FFFF;
+		padding:0.5%;
+
+	}
+	#toolbar{
+		display:none;
+		/*border:1px solid;
+		border-color:#00FFFF transparent #00FFFF transparent;*/
+		height:5%;
+		clear:both;
+	}
+	.panel{
+		float:left;
+		width:49.2%;
+		border:2px solid #00FFFF;
+		height:90%;
+		margin:1px;
+		overflow:auto;
+		background-color:#000080;
+	}
+	.panel > .current_dir{
+		height:1.3em;
+		background-color:#008080;
+		color:#D4D0C8;
+		/*outline:1px outset #00FFFF;*/
+		display:block;
+		margin:auto;
+		text-align:center;
+	}
+	[data-is-folder="true"]{
+		text-transform:uppercase;
+	}
+	.panel > .current_dir_active {
+		
+		height:1.3em;
+		background-color:#008080;
+		color:#000080;
+		text-align:center;
+		/*display:none;*/
+	}
+	.panel > .current_dir_nonactive{
+		display:none;
+		height:1.3em;
+		background-color:#008080;
+		color:#000080;
+		text-align:center;
+
+	}
+	.panel > .list{
+		width:100%;
+		border-spacing:0;
+	}
+	.panel > * {
+		cursor:pointer;
+	}
+	.list  td{
+		
+		background-image:none !important;
+		
+	}
+	.list-header tr:first-child{
+		background-color:#000080;
+		height:1.5em;
+		outline:1px outset #00FFFF;
+		display:none;
+	}
+	.cursor {
+		color:#000080;
+	}
+	.cursor > td{
+		/*border-bottom:1px dotted #3F3F3F;
+		border-top:1px dotted #3F3F3F;*/
+		background-color:#00FFFF;
+		color:#000080;
+	}
+	.cursor > td:first-child{
+		/* border-left:1px dotted #3F3F3F; */
+		background-color:#00FFFF;
+	}
+	.cursor > td:last-child{
+		/* border-right:1px dotted #3F3F3F; */
+		background-color:#00FFFF;
+	}
+	#bottom_panel{
+		/*border:1px solid;
+		border-color:#ffffff transparent transparent transparent;*/
+		height:4%;
+		clear:both;
+	}
+	thead , tbody{
+		
+	}
+	.filename{
+		text-indent:0;
+		background-position:center left;
+		background-repeat:no-repeat;
+	}
+	.selected {
+		color:#ffff00 !important;
+		background-color:000080;
+	}
+	
+	button{
+	width:12%;
+	margin:0.8% 0;
+	border:none;
+	/*border:1px solid;*/
+	color:black;
+	text-align:left;
+	/*border-color:#ddd #888 #888 #ddd;*/
+	background-color:#008080;
+	height:80%;
+}

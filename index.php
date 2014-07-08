@@ -10,14 +10,7 @@ include 'config.php';
 <meta charset='utf-8'>
 <link rel='stylesheet' href='<?='./themes/' . THEME . '/styles.css'?>'>
 <style>
-button{
-	width:14%;
-	margin:0.8% 0;
-	border:1px solid;
-	border-color:#ddd #888 #888 #ddd;
-	background-color:#cccccc;
-	height:80%;
-}
+
 
 </style>
 <script src='jquery-1.11.1.min.js'></script>
@@ -59,9 +52,9 @@ button{
 				$('.current_dir:eq(' + panel + ')').html(folderName);
 				
 				for (var i = 0; i < filelist.length; i++){
-					$('.folder-content:eq(' + panel + ')').append('<tr data-folder=' 
+					$('.folder-content:eq(' + panel + ')').append('<tr class="line" data-folder="' 
 						+ filelist[i].fullpath + 
-						' data-filename="' + 
+						'" data-filename="' + 
 						filelist[i].name +
 						'" data-extension="'+ 
 						filelist[i].extension +
@@ -108,12 +101,20 @@ button{
 			target.addClass('cursor');
 		}
 		
-		$('.list').click(function(){
+		
+		$('.list').click(function(event){
+			event.preventDefault();
+			drawCursor($(event.target).parent());
+		});
+		
+		$('.list').contextmenu(function(event){
+			event.preventDefault();
+			$(event.target).parent().toggleClass('selected');
 			drawCursor($(event.target).parent());
 		});
 		
 		$('.list').dblclick(function(event){
-
+			event.preventDefault();
 			drawCursor(line);
 			line = $(event.target).parent();
 
@@ -141,18 +142,56 @@ button{
 			}
 			if (confirm ('Are you really want to delete ' + fileName + '?')){
 					var currentDir = $('.current_dir:eq(' + activePanel + ')').html();
-					alert('action=del&filename=' + fileName + '&path=' + currentDir);
 					$.ajax({
 						cache : false, 
 						type  : 'POST',
 						url   : 'operations.php',
 						data  : 'action=del&filename=' + fileName + '&path=' + currentDir,
-					}).done(function (){
+					}).done(function (data){
+						
+						var result = JSON.parse(data);
+						
+						if (typeof(result.message) != "undefined"){
+							alert(result.message);
+						}
 						renderPanel(currentDir);
 					});
 			}
 		}
+		function newdir(){
+			var dirName = prompt('Enter the new directory name');
+			if (dirName !== null && dirName != '' && dirName != false && dirName !='.' && dirName !='..')
+			var currentDir = $('.current_dir:eq(' + activePanel + ')').html();
+				
+			$.ajax({
+						cache : false, 
+						type  : 'POST',
+						url   : 'operations.php',
+						data  : 'action=newfolder&filename=' + dirName + '&path=' + currentDir,
+					}).done(function (data){
+						
+						var result = JSON.parse(data);
+						
+						if (typeof(result.message) !== undefined){
+							alert(typeof(result.message));
+						}
+						
+			});
+			renderPanel($('.current_dir:eq(' + activePanel + ')').html(), activePanel);
+		}
 		
+		function getDirSize(dir, writeTo){
+			writeTo.html('...');
+			$.ajax({
+						cache : false, 
+						type  : 'POST',
+						url   : 'operations.php',
+						data  : 'action=calcsize&path=' + dir,
+					}).done(function (data){
+						writeTo.html(data);
+			});	
+			
+		}
 		
 		function rename(){
 		
@@ -183,7 +222,7 @@ button{
 		
 		$('body').keydown(function(){
 			
-			//alert(event.keyCode);
+			////alert(event.keyCode);
 			/*
 			F3-114
 			4-115
@@ -194,6 +233,10 @@ button{
 			*/
 			event.preventDefault();
 			switch (event.keyCode){
+				case 45:
+					line.toggleClass ('selected');
+					drawCursor(line.next());
+					break;
 				case 35:
 					var previousLine = line;
 					var quant = $('.folder-content:eq(' + activePanel  + ') tr').length;
@@ -208,10 +251,16 @@ button{
 					panelScrollTop();
 					break;
 				case 38:
+					if (event.shiftKey){
+						line.toggleClass ('selected');
+					}
 					drawCursor(line.prev());
 					break;
 					
 				case 40:
+					if (event.shiftKey){
+						line.toggleClass ('selected');
+					}
 					drawCursor(line.next());
 					break;
 				case 9:
@@ -227,17 +276,27 @@ button{
 						renderPanel(line.attr('data-folder'), activePanel);
 					}
 					break;
-				case 113:
+				case 113: //F2
 					rename();
 					break;
-				case 119:
-				case 46:
+				case 119: //F8
+				case 46:  //Delete
 					unlink();
 					break;
-				case 82:
+				case 118: //F7
+					newdir();
+					break;
+				case 82:  //Ctrl + R
 					if (event.ctrlKey){
 						renderPanel($('.current_dir:eq(' + activePanel + ')').html(), activePanel);
 					}
+					break;
+				case 32:  //Space
+					if (line.attr('data-is-folder') == 'true'){
+						getDirSize(line.attr('data-folder'), line.children('td:eq(2)'));
+						
+					}
+				  break;
 			}
 			
 			
@@ -246,8 +305,15 @@ button{
 		$('#f2').click(function(){
 			rename();
 		});
+		$('#f7').click(function(){
+			newdir();
+		});
 		$('#f8').click(function(){
 			unlink();
+		});
+		$('.line td').mouseup(function(event){
+		//	event.preventDefault();
+		// alert(event.button);
 		});
 		
 	});
