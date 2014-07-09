@@ -50,7 +50,7 @@ switch ($_POST['action']){
 		echo $total;
 		break;
 	case 'getfile':
-		echo file_get_contents($_POST['folder']);
+		echo htmlspecialchars(file_get_contents($_POST['folder']));
 	default:
 		break;
 

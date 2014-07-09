@@ -276,13 +276,18 @@ include 'config.php';
 						renderPanel(line.attr('data-folder'), activePanel);
 					}
 					break;
+				case 27:
+					$('#viewer').hide();
+					break;
 				case 113: //F2
 					rename();
 					break;
 				case 114: //F3
 					if (line.attr('data-is-folder') != 'true'){
-						$('#viewer').toggle();
 						$('#viewer_header').html(line.attr('data-folder') + '/' + line.attr('data-filename'));
+						$('#viewer_content').html('');
+						$('#viewer').toggle();
+					
 						$.ajax({
 							cache : false, 
 							type  : 'POST',

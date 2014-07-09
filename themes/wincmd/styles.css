@@ -38,6 +38,7 @@
 		overflow:auto;
 		background-color:#C0C0C0;
 	}
+
 	.panel > .current_dir{
 		height:1.3em;
 		background-color:#808080;
@@ -160,6 +161,7 @@
 		border-color:#808080 #fff #fff #808080;
 		z-index:12;
 		overflow:auto;
+		font-weight:100;
 	}
 	#visible_block{
 		display:block;
