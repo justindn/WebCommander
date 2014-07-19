@@ -32,11 +32,12 @@
 		float:left;
 		border:1px solid;
 		border-color:#808080 #eeeeee #eeeeee #808080;
-		margin:0.2%;
+		margin:0.1%;
 		background-color:#C0C0C0;
 		display:block;
-		overflow:auto;
-		
+	}
+	.panel:nth-child(2){
+		float:right;
 	}
 	.panel_current_folder{
 		height:1.3em;
@@ -92,7 +93,10 @@
 	}
 	
 	.cursor{
-		outline:1px dotted #000;
+		/* outline:1px dotted #000; */
+		border:1px dotted #000;
+		/* margin:-1px 0 0 -1px; */
+		height:calc(1.6em - 2px);
 	}
 	/**/
 	#toolbar{

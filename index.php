@@ -1,4 +1,4 @@
-<?
+<?php
 header('content-type:text/html;charset=utf-8');
 include './lang/ru.php';
 include 'config.php';
@@ -37,9 +37,12 @@ include 'config.php';
 			'getSibling' : function() {
 				return Math.abs(this.isActive - 1);
 			},
-			'getActivePanel' : function() {
+			'active' : function() {
 				return this[this.isActive];
-			}
+			}, 
+			'another' : function() {
+				return this[Math.abs(this.isActive - 1)];
+			}, 
 
 		}
 		
@@ -53,8 +56,8 @@ include 'config.php';
 				renderPanel(panels[1]);
 			});
 		}
-		
-		function renderPanel(panel){
+		//Функция отрисовки панели со списком файлов. Передается объект - панель из panels
+		function renderPanel(panel, cursorPosition){
  			if (typeof (panel) === "undefined") return;
 		
 			$.ajax('filelist.php?folder=' + panel.folder).done(function(data) {
@@ -62,8 +65,6 @@ include 'config.php';
 				panel.object.empty();
 				
 				var filelist = JSON.parse(data);
-				
-				//var currentFolder = panel.folder;
 				
 				panel.header.html(panel.folder);
 				
@@ -101,6 +102,7 @@ include 'config.php';
 		function selectLine(line_to_select){
 			line_to_select.toggleClass('selected');
 		}
+		
 	//Рисование курсора. Функции передается объект, где надо нарисовать курсор
 	//В объекте line - объект, где курсор был.
 		function drawCursor(current_line){
@@ -145,23 +147,177 @@ include 'config.php';
 		
 		/*Interface Functions*/
 		function panelScrollTop(){
+			alert(panels.active().object.prop('scrollTop'));
+			panels.active().object.animate({scrollTop: 0}, 1);
 			
-			panels[panels.isActive].object.animate({scrollTop: 0}, 1);
 		}
 		function panelScrollBottom(){
-			var height = panels[panels.isActive].object.height();
-			panels[panels.isActive].object.animate({scrollTop: height}, 1);
+			var height = panels.active().object.height();
+			panels.active().object.animate({scrollTop: height}, 1);
+			alert(panels.active().object.prop('scrollTop'));
 		}
 		
 		/*Files functions*/
+		function rename(){
+			if (line.attr('data-filename') == '..') return;
+			if (line.attr('data-is-folder') == 'true'){
+				var oldName = line.attr('data-filename');
+			}
+			else{
+				var oldName = line.attr('data-filename') + '.' + line.attr('data-extension') ;
+			}
+			var newName = prompt('Enter the new name', oldName);
+
+			var currentDir = panels.active().folder;
+			
+			if (newName !== null && newName != false && newName != oldName && line.attr('data-filename') != '..'){
+					$.ajax({
+						cache : false, 
+						type  : 'POST',
+						url   : 'operations.php',
+						data  : 'action=ren&oldname=' + oldName + '&newname=' + newName + '&path=' + currentDir,
+					}).done(function (){
+						renderPanel(panels.active());
+					});
+			}
+		}
+		
+		function getDirSize(dir, writeTo){
+			writeTo.html('...');
+			$.ajax({
+						cache : false, 
+						type  : 'POST',
+						url   : 'operations.php',
+						data  : 'action=calcsize&path=' + dir,
+					}).done(function (data){
+						writeTo.html(data);
+			});	
+			
+		}
+		
+		function newdir(){
+			var dirName = prompt('Enter the new directory name');
+			if (dirName !== null && dirName != '' && dirName != false && dirName !='.' && dirName !='..')
+			var currentDir = panels.active().folder;
+								
+			$.ajax({
+						cache : false, 
+						type  : 'POST',
+						url   : 'operations.php',
+						data  : 'action=newfolder&filename=' + dirName + '&path=' + currentDir,
+					}).done(function (data){
+						renderPanel(panels.active());
+					});
+			
+		}
+		
+		function unlink(){
+			if (line.attr('data-filename') == '..') return;
+			if (line.attr('data-is-folder') == 'true'){
+				var fileName = line.attr('data-filename');
+			}
+			else{
+				var fileName = line.attr('data-filename') + '.' + line.attr('data-extension') ;
+			}
+			if (confirm ('Are you really want to delete ' + fileName + '?')){
+					
+					$.ajax({
+						cache : false, 
+						type  : 'POST',
+						url   : 'operations.php',
+						data  : 'action=del&filename=' + fileName + '&path=' + panels.active().folder,
+					}).done(function (data){
+						
+						var result = JSON.parse(data);
+						
+						if (typeof(result.message) != "undefined"){
+							alert(result.message);
+						}
+						renderPanel(panels.active());
+					});
+			}
+		}
+		
+		function show_progress(title){
+			if(confirm('Do you really want to ' + title + ' these files?')){
+				var copy_to = panels.another().folder + '\\' + line.attr('data-filename') + '.' + line.attr('data-extension');
+				var copy_from = line.attr('data-folder');
+				
+				if (copy_from == copy_to){
+					alert('Cannot copy file to itself!');
+					return;
+				}
+				if (typeof(title) == 'undefined') title='';
+				$('#progress header').html(title);
+				$('#progress').show();
+					$.ajax({
+					cache : false, 
+					type  : 'POST',
+					url   : 'copy.php',
+					data  : 'from=' + copy_from + '&to=' + copy_to + '&overwrite=0',
+					}).done(function (data){
+						if (data == ''){
+							alert('Copy error');
+						}
+						if (data == '2'){
+							alert('File already exist!');
+						}
+						$('#progress').hide();
+						renderPanel(panels.another());
+					});	
+			}
+		}
 		
 		/*Viewer functions*/
+		function show_viewer(){
+			if (line.attr('data-is-folder') != 'true'){
+						$('#viewer_header').html(line.attr('data-folder') + '/' + line.attr('data-filename'));
+						$('#viewer_content').html('');
+						$('#viewer').toggle();
+					
+						$.ajax({
+							cache : false, 
+							type  : 'POST',
+							url   : 'operations.php',
+							data  : 'action=getfile&folder=' + line.attr('data-folder'),
+						}).done(function (data){
+							$('#viewer_content').html('<pre>' + data + '</pre>');
+						});	
+			}
+		}
 		
+		function hide_viewer(){
+			$('#viewer').hide();
+		}
+		
+		$('#viewer_close').click(function(){
+			hide_viewer();
+		});
+
+		
+		/*functional buttons functions*/
+		$('#f2').click(function(){
+			rename();
+		});
+		$('#f3').click(function(){
+			show_viewer();
+		});
+		$('#f5').click(function(){
+			show_progress('Copy');
+		});
+		$('#f6').click(function(){
+			show_progress('Move');
+		});
+		$('#f7').click(function(){
+			newdir();
+		});
+		$('#f8').click(function(){
+			unlink();
+		});
 		
 		/*Keyboard Shortcuts*/
-		$('body').keydown(function(){
-			
-			
+		$('body').keydown(function(event){
+
 			/*
 			F3-114
 			4-115
@@ -178,13 +334,13 @@ include 'config.php';
 					drawCursor(line.next());
 					break;
 				case 35: //End
-					/*panelScrollBottom();
-					var quant = line.parent().children().length;
-					*/
+					panelScrollBottom();
+					drawCursor(line.parent().children().last());
+					
 					break;
 				case 36: //Home
-					/*drawCursor(line.prev());
-					panelScrollTop();*/
+					drawCursor(line.parent().children().first());
+					panelScrollTop();
 					break;
 				case 38:
 					//Up
@@ -202,7 +358,7 @@ include 'config.php';
 					drawCursor(line.next());
 					
 					break;
-				case 9:
+				case 9: //Tab
 					panels.isActive = panels.getSibling();
 					
 					drawCursor();
@@ -221,13 +377,13 @@ include 'config.php';
 				case 27:
 					$('#viewer').hide();
 					break;
-				/*case 113: //F2
+				case 113: //F2
 					rename();
-					break;*/
+					break;
 				case 114: //F3
 					show_viewer();
 					break;
-				/*case 116: //F5
+				case 116: //F5
 					show_progress('Copy');
 					break;
 				case 117: //F6
@@ -236,28 +392,27 @@ include 'config.php';
 				case 118: //F7
 					newdir();
 					break;
+				
 				case 119: //F8
 				case 46:  //Delete
 					unlink();
 					break;
-				*/
+				
 				case 82:  //Ctrl + R
 					if (event.ctrlKey){
-						renderPanel(panels.getActivePanel());
+						renderPanel(panels.active());
 					}
 					break;
-				/*case 32:  //Space
+				case 32:  //Space
 					line.toggleClass('selected');
-					if (line.attr('data-is-folder') == 'true'){
-						getDirSize(line.attr('data-folder'), line.children('td:eq(2)'));
+					if (isNaN(parseInt(line.children('div:eq(2)').html()))){
+						if (line.attr('data-is-folder') == 'true'){
+							getDirSize(line.attr('data-folder'), line.children('div:eq(2)'));
+						}
 					}
 					break;
-				case 27:
-					hide_viewer();
-					break;
-				*/
 			}
-			
+			return false;
 			
 		});
 	});

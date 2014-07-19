@@ -1,6 +1,6 @@
 	$(document).ready(function(){
 		//Текущее местоположение курсора. Объект DOM со строкой таблицы.
-		var line;
+		/* var line;
 		//Активная панель
 		var activePanel = 0;
 		init();
@@ -21,10 +21,10 @@
 				renderPanel(init.folder, 0);
 				renderPanel(init.folder, 1);
 			});
-		}
+		} */
 		
 		
-		function renderPanel(folderName, panel){
+		/* function renderPanel(folderName, panel){
 		//checking if the name of current forder is exists
  			if (typeof (folderName) === "undefined") folderName = '.';
 		//checking if the 'panel' object is defined	
@@ -70,9 +70,9 @@
 				
 			});
 			
-		}
+		} */
 		
-		function drawCursor(target, prev){
+		/* function drawCursor(target, prev){
 
 			if (target.index() == -1) return;
 			
@@ -92,13 +92,13 @@
 			}
 			line = target;
 			target.addClass('cursor');
-		}
+		} */
 		
 		
-		$('.list').click(function(event){
+		/* $('.list').click(function(event){
 			event.preventDefault();
 			drawCursor($(event.target).parent());
-		});
+		}); */
 		
 		/*$('.list').contextmenu(function(event){
 			event.preventDefault();
@@ -125,7 +125,7 @@
 			$('.panel:eq(' + Math.abs(activePanel) + ')').animate({scrollTop: height}, 1);
 		}*/
 		
-		function unlink(){
+		/* function unlink(){
 			if (line.attr('data-filename') == '..') return;
 			if (line.attr('data-is-folder') == 'true'){
 				var fileName = line.attr('data-filename');
@@ -150,8 +150,8 @@
 						renderPanel(currentDir);
 					});
 			}
-		}
-		function newdir(){
+		} */
+		/* function newdir(){
 			var dirName = prompt('Enter the new directory name');
 			if (dirName !== null && dirName != '' && dirName != false && dirName !='.' && dirName !='..')
 			var currentDir = $('.current_dir:eq(' + activePanel + ')').html();
@@ -171,9 +171,9 @@
 						
 			});
 			renderPanel($('.current_dir:eq(' + activePanel + ')').html(), activePanel);
-		}
+		} */
 		
-		function getDirSize(dir, writeTo){
+		/* function getDirSize(dir, writeTo){
 			writeTo.html('...');
 			$.ajax({
 						cache : false, 
@@ -184,9 +184,9 @@
 						writeTo.html(data);
 			});	
 			
-		}
+		} */
 		
-		function rename(){
+/* 		function rename(){
 		
 			if (line.attr('data-filename') == '..') return;
 			
@@ -211,9 +211,9 @@
 						renderPanel(currentDir);
 					});
 			}
-		}
+		} */
 		
-		function show_viewer(){
+/* 		function show_viewer(){
 			if (line.attr('data-is-folder') != 'true'){
 						$('#viewer_header').html(line.attr('data-folder') + '/' + line.attr('data-filename'));
 						$('#viewer_content').html('');
@@ -232,13 +232,13 @@
 		
 		function hide_viewer(){
 			$('#viewer').hide();
-		}
+		} */
 		
-		function copy(from, to){
+/* 		function copy(from, to){
 			
-		}
+		} */
 		
-		function show_progress(title){
+		/* function show_progress(title){
 			if(confirm('Do you really want to ' + title + ' these files?')){
 				var copy_to = $('.current_dir:eq(' + Math.abs(activePanel-1) + ')').html() + '\\' + line.attr('data-filename') + '.' + line.attr('data-extension');
 				var copy_from = line.attr('data-folder');
@@ -265,7 +265,7 @@
 						$('#progress').hide();
 					});	
 			}
-		}
+		} */
 		
 		$('body').keydown(function(){
 			
@@ -297,7 +297,7 @@
 					drawCursor(line, previousLine);
 					panelScrollTop();
 					break;
-				case 38:
+		/* 		case 38:
 					if (event.shiftKey){
 						line.toggleClass ('selected');
 					}
@@ -309,8 +309,8 @@
 						line.toggleClass ('selected');
 					}
 					drawCursor(line.next());
-					break;
-				case 9:
+					break; */
+/* 				case 9:
 					//alert('tab');
 					activePanel = Math.abs(panel.index()-2);
 					var previousLine = line;
@@ -322,8 +322,8 @@
 					if (line.attr('data-is-folder') === 'true'){
 						renderPanel(line.attr('data-folder'), activePanel);
 					}
-					break;
-				case 27:
+					break; */
+				/* case 27:
 					$('#viewer').hide();
 					break;
 				case 113: //F2
@@ -360,13 +360,13 @@
 				  break;
 				case 27:
 					hide_viewer();
-					break;
+					break; */
 			}
 			
 			
 		});
 		
-		$('#f2').click(function(){
+		/* $('#f2').click(function(){
 			rename();
 		});
 		$('#f3').click(function(){
@@ -383,14 +383,11 @@
 		});
 		$('#f8').click(function(){
 			unlink();
-		});
-		$('.line td').mouseup(function(event){
-		//	event.preventDefault();
-		// alert(event.button);
-		});
+		}); */
+
 		/*VIEWER*/
-		$('#viewer_close').click(function(){
+/* 		$('#viewer_close').click(function(){
 			hide_viewer();
 		});
-		
+ */		
 	});

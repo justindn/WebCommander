@@ -1,1 +1,0 @@
-a:3:{s:4:"from";s:37:"Z:\home\localhost\www\commander\1.txt";s:2:"to";s:42:"Z:\home\localhost\www\commander\test\1.txt";s:9:"overwrite";s:1:"0";}

@@ -38,6 +38,9 @@ switch ($_POST['action']){
 			$file['message'] = 'Cannot create directory';
 			echo json_encode($file);
 		}
+		else{
+			echo json_encode('1');
+		}
 		break;
 	case 'calcsize':
 		$dir_list = array();
