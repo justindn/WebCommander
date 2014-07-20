@@ -62,9 +62,11 @@
 		border-color:#fff #808080 #808080 #fff;
 	}
 	.panel_list{
-		display:table;
+		display:block;
 		width:100%;
-
+		height:96%;
+		overflow-y:auto;
+		overflow-x:hidden;
 	}
 	.panel_row{
 		display:table;

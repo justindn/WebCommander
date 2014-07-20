@@ -6,7 +6,7 @@ include 'config.php';
 <!doctype html>
 <html>
 <head>
-<title> </title>
+<title>Web Commander</title>
 <meta charset='utf-8'>
 <link rel='stylesheet' href='<?='./themes/' . THEME . '/styles.css'?>'>
 <style>
@@ -46,6 +46,7 @@ include 'config.php';
 
 		}
 		
+		
 		//Функция инициализации
 		function init(){
 			$.ajax('init.php').done(function(data){
@@ -84,18 +85,14 @@ include 'config.php';
 						'</div> <div class="panel_cell">' + filelist[i].datetime + 
 						'</div></div>');
 				}
-				
-
-				
-				/* if (typeof (line) === 'undefined'){
+				if (typeof line !== 'undefined'){
+					line = panels[panels.isActive].object.children('.panel_row:eq(0)');
+				}
+				else{
 					line = $('.panel_row:eq(0)');
 				}
-				
-				else{ */
-					line = panels[panels.isActive].object.children('.panel_row:eq(0)');
-					drawCursor(line);
-				/* } */
-				
+				drawCursor(line);
+
 			});
 		}
 	
@@ -146,15 +143,51 @@ include 'config.php';
 		});
 		
 		/*Interface Functions*/
-		function panelScrollTop(){
-			alert(panels.active().object.prop('scrollTop'));
-			panels.active().object.animate({scrollTop: 0}, 1);
+		function panelScrollTop() {
+			
+			panels.active().object.animate({scrollTop: '0'}, 1);
 			
 		}
-		function panelScrollBottom(){
-			var height = panels.active().object.height();
+		function panelScrollBottom() {
+			var height = panels.active().object.prop ('scrollHeight');
 			panels.active().object.animate({scrollTop: height}, 1);
-			alert(panels.active().object.prop('scrollTop'));
+		}
+		
+		function panelScrollTo(height) {
+			panels.active().object.animate({scrollTop: height}, 1);
+		}
+		function getPageScrollLine(lineNum){
+			if (lineNum < 0) {
+				lineNum = 0;
+			}
+			if ($(line.parent().children(':eq(' + lineNum + ')')).length == 0){
+				var lastLine = $(line.parent().children()).length - 1;
+				return $(line.parent().children(':eq(' + lastLine + ')'));
+			}
+			else{
+				return $(line.parent().children(':eq(' + lineNum + ')'));
+			}
+		}
+		
+		function getSelectedFiles(){
+			/*var filesList = [[0][0]];
+			var quantity = panels.active().object.children('.selected').length;
+			if (quantity == 0){
+				filesList[0]['folder'] = line.attr('data-folder');
+				filesList[0]['filename'] = line.attr('data-filename');
+				filesList[0]['extension'] = line.attr('data-extension');
+				filesList[0]['is-folder'] = line.attr('data-is-folder');
+			}
+			else {
+				for (i=0;i<quantity; i++){
+					var current_line = panels.active().object.children('.selected:eq(' + i + ')');
+					filesList[i]['folder'] = current_line.attr('data-folder');
+					filesList[i]['filename'] = current_line.attr('data-filename');
+					filesList[i]['extension'] = current_line.attr('data-extension');
+					filesList[i]['is-folder'] = current_line.attr('data-is-folder');
+				}
+			}
+			return filesList;*/
 		}
 		
 		/*Files functions*/
@@ -211,7 +244,10 @@ include 'config.php';
 			
 		}
 		
-		function unlink(){
+		function unlink(filename){
+			alert(getSelectedFiles());
+			if (Array.isArray(filename)){
+			}
 			if (line.attr('data-filename') == '..') return;
 			if (line.attr('data-is-folder') == 'true'){
 				var fileName = line.attr('data-filename');
@@ -316,27 +352,32 @@ include 'config.php';
 		});
 		
 		/*Keyboard Shortcuts*/
+		
 		$('body').keydown(function(event){
 
-			/*
-			F3-114
-			4-115
-			5-116
-			6-117
-			7-118
-			R - 82
-			*/
-			///alert(event.keyCode);
+			//alert(event.keyCode);
 			event.preventDefault();
 			switch (event.keyCode){
-				case 45:
+				case 45: //Insert
 					selectLine(line);
 					drawCursor(line.next());
+					break;
+				case 33: //PageUp
+					var line_height = parseInt(line.css('height'));
+					var jump_to = line.index() - Math.round((panels.active().object.prop('clientHeight')/ line_height) - 1);
+					drawCursor(getPageScrollLine(jump_to, 'up'));
+					panelScrollTo (jump_to * line_height);
+					break;
+				case 34: //PageDown
+					
+					// Переменная, содержащая количество строк на панель + номер текущей строки
+					var jump_to = line.index() + Math.round((panels.active().object.prop('clientHeight')/ parseInt(line.css('height'))) - 1);
+					drawCursor(getPageScrollLine(jump_to, 'down'));
+					panelScrollTo (jump_to * parseInt(line.css('height')));
 					break;
 				case 35: //End
 					panelScrollBottom();
 					drawCursor(line.parent().children().last());
-					
 					break;
 				case 36: //Home
 					drawCursor(line.parent().children().first());
@@ -395,7 +436,7 @@ include 'config.php';
 				
 				case 119: //F8
 				case 46:  //Delete
-					unlink();
+					unlink(getSelectedFiles());
 					break;
 				
 				case 82:  //Ctrl + R
@@ -413,7 +454,6 @@ include 'config.php';
 					break;
 			}
 			return false;
-			
 		});
 	});
 	
