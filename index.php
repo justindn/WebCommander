@@ -59,6 +59,9 @@ include 'config.php';
 		}
 		//Функция отрисовки панели со списком файлов. Передается объект - панель из panels
 		function renderPanel(panel, cursorPosition){
+			if (typeof line != 'undefined'){
+				var lineNumber = line.index();
+			}
  			if (typeof (panel) === "undefined") return;
 		
 			$.ajax('filelist.php?folder=' + panel.folder).done(function(data) {
@@ -85,11 +88,16 @@ include 'config.php';
 						'</div> <div class="panel_cell">' + filelist[i].datetime + 
 						'</div></div>');
 				}
-				if (typeof line !== 'undefined'){
+				
+				if (lineNumber === 'undefined'){
 					line = panels[panels.isActive].object.children('.panel_row:eq(0)');
 				}
 				else{
-					line = $('.panel_row:eq(0)');
+					
+					line = panels[panels.isActive].object.children('.panel_row:eq(' + lineNumber + ')');
+					if (line.length == 0){
+						line = panels[panels.isActive].object.children('.panel_row:eq(0)');
+					}
 				}
 				drawCursor(line);
 
@@ -245,9 +253,7 @@ include 'config.php';
 		}
 		
 		function unlink(filename){
-			alert(getSelectedFiles());
-			if (Array.isArray(filename)){
-			}
+			
 			if (line.attr('data-filename') == '..') return;
 			if (line.attr('data-is-folder') == 'true'){
 				var fileName = line.attr('data-filename');
@@ -436,7 +442,7 @@ include 'config.php';
 				
 				case 119: //F8
 				case 46:  //Delete
-					unlink(getSelectedFiles());
+					unlink();
 					break;
 				
 				case 82:  //Ctrl + R
