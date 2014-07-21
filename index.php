@@ -46,6 +46,33 @@ include 'config.php';
 
 		}
 		
+		var progressWindow = {
+			'title' : function (title){
+				this.progress_title.html(title);
+			}, 
+			value   : function(val){
+				if (typeof (val) == 'undefined' || val == 0){
+					return;
+				}
+				var width = Number(val * parseInt(this.barContainer.css('width')) / 100).toFixed(0) + 'px';
+				this.bar.css ({'width' : width});
+			},  
+			'show'  : function(){
+				this.window.show();
+			},
+			'hide'  : function (){
+				this.progress_title.html('');
+				this.bar.css ({'width' : '0'});
+				this.window.hide();
+			},
+			'window': $('#progress'), 
+			
+			'barContainer': $('.progressbar'),
+			
+			'bar'   : $('.progressbar div'),
+			
+			'progress_title' : $('#progress_description'),
+		}
 		
 		//Функция инициализации
 		function init(){
@@ -136,8 +163,11 @@ include 'config.php';
 		
 		$('.panel_list').contextmenu(function(event){
 			event.preventDefault();
-			selectLine($(event.target).parent());
-			drawCursor($(event.target).parent());
+			
+			if ($(event.target).prop('class') == 'panel_cell'){
+				selectLine($(event.target).parent());
+				drawCursor($(event.target).parent());
+			}
 		});
 		
 		$('.panel_list').dblclick(function(event){
@@ -178,24 +208,29 @@ include 'config.php';
 		}
 		
 		function getSelectedFiles(){
-			/*var filesList = [[0][0]];
+			var filesList = [];
 			var quantity = panels.active().object.children('.selected').length;
 			if (quantity == 0){
-				filesList[0]['folder'] = line.attr('data-folder');
-				filesList[0]['filename'] = line.attr('data-filename');
-				filesList[0]['extension'] = line.attr('data-extension');
-				filesList[0]['is-folder'] = line.attr('data-is-folder');
+				filesList[0] = {
+						'fullname'   : line.attr('data-folder'), 
+						'filename'  : line.attr('data-filename'),
+						'extension' : line.attr('data-extension'),
+						'is-folder' : line.attr('data-is-folder'),
+					
+				}
 			}
 			else {
 				for (i=0;i<quantity; i++){
 					var current_line = panels.active().object.children('.selected:eq(' + i + ')');
-					filesList[i]['folder'] = current_line.attr('data-folder');
-					filesList[i]['filename'] = current_line.attr('data-filename');
-					filesList[i]['extension'] = current_line.attr('data-extension');
-					filesList[i]['is-folder'] = current_line.attr('data-is-folder');
+					filesList[i] = {
+						'fullname'    : current_line.attr('data-folder'), 
+						'filename'  : current_line.attr('data-filename'),
+						'extension' : current_line.attr('data-extension'),
+						'is-folder' : current_line.attr('data-is-folder'),
+					}
 				}
 			}
-			return filesList;*/
+			return filesList;
 		}
 		
 		/*Files functions*/
@@ -252,34 +287,89 @@ include 'config.php';
 			
 		}
 		
-		function unlink(filename){
-			
-			if (line.attr('data-filename') == '..') return;
-			if (line.attr('data-is-folder') == 'true'){
+		function unlink(){
+			var filesList = getSelectedFiles();
+			var quantity = filesList.length;
+			if (confirm ('Are you really want to delete ' + quantity + ' file(s)?')){
+				progressWindow.show();
+
+				for (i=0; i<quantity; i++){
+					if (filesList[i].filename == '..'){
+						continue;
+					}
+					else{
+						progressWindow.title('Deleting: ' + filesList[i].fullname);
+						$.ajax({
+							cache : false, 
+							type  : 'POST',
+							url   : 'operations.php',
+							data  : 'action=del&filename=' + filesList[i].fullname,
+							async : false, 
+						}).done(function (data){
+							var result = JSON.parse(data);
+							if (typeof(result.message) != "undefined"){
+								alert(filesList[i].fullname + ': \n' + result.message);
+							}
+							progressWindow.value(i*100/quantity);
+						});
+					}
+				} 
+			}
+			progressWindow.hide();
+			renderPanel(panels.active());
+			/*if (line.attr('data-is-folder') == 'true'){
 				var fileName = line.attr('data-filename');
 			}
 			else{
 				var fileName = line.attr('data-filename') + '.' + line.attr('data-extension') ;
-			}
-			if (confirm ('Are you really want to delete ' + fileName + '?')){
-					
-					$.ajax({
-						cache : false, 
-						type  : 'POST',
-						url   : 'operations.php',
-						data  : 'action=del&filename=' + fileName + '&path=' + panels.active().folder,
-					}).done(function (data){
-						
-						var result = JSON.parse(data);
-						
-						if (typeof(result.message) != "undefined"){
-							alert(result.message);
-						}
-						renderPanel(panels.active());
-					});
-			}
+			}*/
+			
 		}
-		
+		function copy(){
+			var filesList = getSelectedFiles();
+			var quantity = filesList.length;
+			if (confirm ('Are you really want to copy ' + quantity + ' file(s)?')){
+				progressWindow.show();
+				for (i=0; i<quantity; i++){
+					if (filesList[i].filename == '..'){
+						continue;
+					}
+					else{
+						var copy_to = panels.another().folder + '\\' + filesList[i].filename + '.' + filesList[i].extension;
+						var copy_from = filesList[i].fullname;
+						if (panels.another().folder == panels.active().folder){
+							alert('Cannot copy files to itself!');
+							progressWindow.hide();
+							return;
+						}
+						progressWindow.title('Copying: ' + filesList[i].fullname);
+						
+						 $.ajax({
+							cache : false, 
+							type  : 'POST',
+							url   : 'copy.php',
+							data  : 'from=' + copy_from + '&to=' + copy_to + '&overwrite=0',
+							async : false, 
+						}).done(function (data){
+							var result = JSON.parse(data);
+							if (typeof(result.message) != "undefined"){
+								alert(filesList[i].fullname + ': \n' + result.message);
+							}
+							if (data == ''){
+								alert('Copy error');
+							}
+							if (data == '2'){
+								alert('File already exist!');
+							}
+							progressWindow.value(i*100/quantity);
+						}); 
+					}
+				} 
+			}
+			progressWindow.hide();
+			renderPanel(panels.active());
+			renderPanel(panels.another());
+		}
 		function show_progress(title){
 			if(confirm('Do you really want to ' + title + ' these files?')){
 				var copy_to = panels.another().folder + '\\' + line.attr('data-filename') + '.' + line.attr('data-extension');
@@ -345,7 +435,7 @@ include 'config.php';
 			show_viewer();
 		});
 		$('#f5').click(function(){
-			show_progress('Copy');
+			copy();
 		});
 		$('#f6').click(function(){
 			show_progress('Move');
@@ -431,7 +521,7 @@ include 'config.php';
 					show_viewer();
 					break;
 				case 116: //F5
-					show_progress('Copy');
+					copy();
 					break;
 				case 117: //F6
 					show_progress('Move');
@@ -536,12 +626,12 @@ include 'config.php';
 			
 		</div>
 	</div>
-	<div class='progressbar'>
+	<!--<div class='progressbar'>
 		<span></span>
 		<div>
 
 		</div>
-	</div>
+	</div>-->
 	
 </div>
 </body>

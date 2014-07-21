@@ -74,12 +74,15 @@
 		height:1.6em;
 		overflow:hidden;
 		text-overflow:ellipsis;
+		cursor:pointer;
 
 	}
 	.panel_cell{
 		display:table-cell;
 		overflow:hidden;
+		white-space:pre;
 		text-overflow:ellipsis;
+		cursor:pointer;
 	}
 	/*Default width of panels*/
 	.panel_cell:nth-child(1), .panel_header_cell:nth-child(1){

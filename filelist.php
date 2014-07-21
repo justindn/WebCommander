@@ -37,11 +37,8 @@ function getFiles($folder) {
 	$files_array = array();
 	
 	foreach ($list as $filename){
-		/*$dir_array[]['name'] = '..';
-		$dir_array[]['extension'] = '';
-		$dir_array[]['size'] = $lang['folder'];;
-		$dir_array[]['folder'] =  'true';*/
-		if ($filename != '.' /*&& $filename != '..'*/) {
+
+		if ($filename != '.') {
 
 			$file_array = array();
 			$file_array['name'] = removeExtension($filename);
@@ -79,7 +76,17 @@ function getFiles($folder) {
 		}
 	}
 	
+	
 	$dir_array = array_merge($dir_array, $files_array);
+	
+	if ($dir_array[0]['name'] != '..' ){
+		for ($i=0; $i<count($dir_array); $i++){
+			if ($dir_array[$i]['name'] == '..'){
+				list($dir_array[0], $dir_array[$i]) = array($dir_array[$i], $dir_array[0]);
+				break;
+			}
+		}
+	}
 	return $dir_array;
 	
 }

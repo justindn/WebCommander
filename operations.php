@@ -12,7 +12,7 @@ switch ($_POST['action']){
 
 		break;
 	case 'del':
-		$path = $_POST['path'] . SEP . $_POST['filename'];
+		$path = $_POST['filename'];
 		if (!is_dir($path)){
 			if(!@unlink($path)){
 				$file['message'] = 'Cannot delete file. It may be because you have not enough rights or file does not exists';
@@ -53,7 +53,9 @@ switch ($_POST['action']){
 		echo $total;
 		break;
 	case 'getfile':
-		echo htmlspecialchars(file_get_contents($_POST['folder']));
+		//file_put_contents('f.txt', mb_detect_encoding (file_get_contents($_POST['folder'])));
+		$file = iconv('UTF-8', mb_detect_encoding (file_get_contents($_POST['folder'])), file_get_contents($_POST['folder']));
+		echo htmlspecialchars($file);
 	default:
 		break;
 
