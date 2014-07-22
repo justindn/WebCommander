@@ -43,6 +43,9 @@
 		height:1.3em;
 		background-color:#808080; 
 		color:#D4D0C8;
+		white-space:pre;
+		overflow:hidden;
+		text-overflow:ellipsis;
 	}
 	
 	.active{

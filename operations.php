@@ -1,7 +1,7 @@
 <?php
 ini_set("max_execution_time","0");
 
-define ('SEP', "\\");
+include 'config.php';
 
 $files_list = array();
 $dir_list = array();

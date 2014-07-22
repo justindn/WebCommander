@@ -1,5 +1,5 @@
 <?php
 define ('THEME', 'wincmd');
-define ('SEP', "/");
+define ('SEP', "\\");
 
 ?>

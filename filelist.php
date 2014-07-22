@@ -1,9 +1,11 @@
 <?php
 include './lang/ru.php';
 include 'config.php';
+
 $folder = dirname(__FILE__);
 
 $theme_path_files = '.' . SEP . 'images' . SEP . 'themes' . SEP . THEME .  SEP . 'icons' . SEP . 'files' . SEP;
+//file_put_contents('test', $theme_path_files . ' ' . SEP);
 
 $folder_icon = $theme_path_files . 'folder.png';
 

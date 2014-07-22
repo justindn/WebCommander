@@ -19,6 +19,8 @@ include 'config.php';
 		var line;
 		//Предыдущее местоположение курсора. Объект DOM со строкой таблицы.
 		var prev_line;
+		
+		var sep = '\\';
 		//Активная панель
 		init();
 		//Данные панелей
@@ -335,7 +337,7 @@ include 'config.php';
 						continue;
 					}
 					else{
-						var copy_to = panels.another().folder + '\\' + filesList[i].filename + '.' + filesList[i].extension;
+						var copy_to = panels.another().folder + sep + filesList[i].filename + '.' + filesList[i].extension;
 						var copy_from = filesList[i].fullname;
 						if (panels.another().folder == panels.active().folder){
 							alert('Cannot copy files to itself!');
@@ -370,7 +372,52 @@ include 'config.php';
 			renderPanel(panels.active());
 			renderPanel(panels.another());
 		}
-		function show_progress(title){
+		function move(){
+			var filesList = getSelectedFiles();
+			var quantity = filesList.length;
+			if (confirm ('Are you really want to move ' + quantity + ' file(s)?')){
+				progressWindow.show();
+				for (i=0; i<quantity; i++){
+					if (filesList[i].filename == '..'){
+						continue;
+					}
+					else{
+						var copy_to = panels.another().folder + sep + filesList[i].filename + '.' + filesList[i].extension;
+						var copy_from = filesList[i].fullname;
+						if (panels.another().folder == panels.active().folder){
+							alert('Cannot move files to itself!');
+							progressWindow.hide();
+							return;
+						}
+						progressWindow.title('Moving: ' + filesList[i].fullname);
+						
+						 $.ajax({
+							cache : false, 
+							type  : 'POST',
+							url   : 'move.php',
+							data  : 'from=' + copy_from + '&to=' + copy_to + '&overwrite=0',
+							async : false, 
+						}).done(function (data){
+							var result = JSON.parse(data);
+							if (typeof(result.message) != "undefined"){
+								alert(filesList[i].fullname + ': \n' + result.message);
+							}
+							if (data == ''){
+								alert('Copy error');
+							}
+							if (data == '2'){
+								alert('File already exist!');
+							}
+							progressWindow.value(i*100/quantity);
+						}); 
+					}
+				} 
+			}
+			progressWindow.hide();
+			renderPanel(panels.active());
+			renderPanel(panels.another());
+		}
+/* 		function show_progress(title){
 			if(confirm('Do you really want to ' + title + ' these files?')){
 				var copy_to = panels.another().folder + '\\' + line.attr('data-filename') + '.' + line.attr('data-extension');
 				var copy_from = line.attr('data-folder');
@@ -398,7 +445,7 @@ include 'config.php';
 						renderPanel(panels.another());
 					});	
 			}
-		}
+		} */
 		
 		/*Viewer functions*/
 		function show_viewer(){
@@ -438,7 +485,7 @@ include 'config.php';
 			copy();
 		});
 		$('#f6').click(function(){
-			show_progress('Move');
+			move();
 		});
 		$('#f7').click(function(){
 			newdir();
@@ -466,7 +513,7 @@ include 'config.php';
 					break;
 				case 34: //PageDown
 					
-					// Переменная, содержащая количество строк на панель + номер текущей строки
+					//Переменная, содержащая количество строк на панель + номер текущей строки
 					var jump_to = line.index() + Math.round((panels.active().object.prop('clientHeight')/ parseInt(line.css('height'))) - 1);
 					drawCursor(getPageScrollLine(jump_to, 'down'));
 					panelScrollTo (jump_to * parseInt(line.css('height')));
@@ -524,7 +571,7 @@ include 'config.php';
 					copy();
 					break;
 				case 117: //F6
-					show_progress('Move');
+					move();
 					break;
 				case 118: //F7
 					newdir();
