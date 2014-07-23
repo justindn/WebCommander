@@ -186,9 +186,11 @@
 		background-color:#ffffff;
 		border:1px solid;
 		border-color:#808080 #fff #fff #808080;
-		z-index:12;
+		z-index:10;
 		overflow:auto;
-		font-weight:100;
+		font-family:'Courier New', monotype !important;
+		padding:0 0.5%;
+		
 	}
 	#visible_block{
 		display:block;
@@ -213,7 +215,7 @@
 	#progress header{
 		margin:1%;
 		text-align:center;
-		font-weight:0;
+		font-weight:100 !important;
 	}
 	#progress_description{
 		margin: 0 0 0 1%;
@@ -226,6 +228,7 @@
 		margin:2% 0;
 		position:relative;
 		background-color:#C0C0C0;
+		z-index:10;
 	}
 	.progressbar div{
 		background-color:#0A246A;

@@ -1,10 +1,63 @@
 <?php
 ini_set("max_execution_time","0");
+header("Expires: Mon, 01 Jul 1997 05:00:00 GMT");
+header("Last-Modified: Mon, 01 Jul 1997 05:00:00 GMT"); 
+header("Cache-Control: no-store, no-cache, must-revalidate"); 
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
 
 include 'config.php';
 
 $files_list = array();
 $dir_list = array();
+
+function getExtension($filename){
+	if ((substr($filename, 0, 1) == '.') && (substr_count($filename, '.') == 1)){
+		return '';
+	}
+	$expl = explode('.', $filename);
+	if (count($expl) >1){
+		return array_pop($expl);
+	}
+	else{
+		return '';
+	}
+}
+
+
+switch ($_GET['action']){
+		case 'getfile':
+			if (filesize($_GET['folder']) == 0){
+				echo '';
+				return;
+			}
+			$handle = fopen ($_GET['folder'], 'r');
+			$file = fread($handle, filesize($_GET['folder']));
+			fclose($handle);
+			
+			switch (strtolower(getExtension($_GET['folder']))){
+				case 'jpg':
+				case 'jpeg':
+					header ('Content-type:image/jpeg');
+					echo $file;
+					break;
+				case 'png':
+					header ('Content-type:image/jpeg');
+					echo $file;
+					break;
+				case 'gif':
+					header ('Content-type:image/gif');
+					echo $file;
+					break;
+				case 'bmp':
+					header ('Content-type:image/bmp');
+					echo $file;
+					break;
+				default:
+					$file = iconv('UTF-8', mb_detect_encoding (file_get_contents($_GET['folder'])), $file);
+					echo '<pre>' . htmlentities($file) . '</pre>';
+			}
+}
 
 switch ($_POST['action']){
 	case 'ren':
@@ -52,10 +105,7 @@ switch ($_POST['action']){
 		}
 		echo $total;
 		break;
-	case 'getfile':
-		//file_put_contents('f.txt', mb_detect_encoding (file_get_contents($_POST['folder'])));
-		$file = iconv('UTF-8', mb_detect_encoding (file_get_contents($_POST['folder'])), file_get_contents($_POST['folder']));
-		echo htmlspecialchars($file);
+	
 	default:
 		break;
 

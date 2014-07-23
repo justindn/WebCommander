@@ -27,7 +27,6 @@ echo json_encode($files);
 /* Functions */
 function getFiles($folder) {
 	global $lang;
-	global $lang;
 	global $theme_path_files;
 	global $folder_icon;
 	global $up_icon;
@@ -41,7 +40,6 @@ function getFiles($folder) {
 	foreach ($list as $filename){
 
 		if ($filename != '.') {
-
 			$file_array = array();
 			$file_array['name'] = removeExtension($filename);
 			$file_array['fullpath'] = realpath($filename);
@@ -50,12 +48,11 @@ function getFiles($folder) {
 			if (is_dir($filename)) {
 				
 				$file_array['icon'] = $folder_icon;
-			
+				$file_array['name'] = $filename;
 				if ($filename == '..'){
+					
 					$file_array['icon'] = $up_icon;
 				}
-				
-				$file_array['name'] = $filename;
 				$file_array['extension'] = '';
 				$file_array['size'] = $lang['folder'];
 				$file_array['folder'] = 'true';
@@ -94,19 +91,26 @@ function getFiles($folder) {
 }
 
 function getExtension($filename){
-	
-	if (substr($filename, 0, 1) == '.'){
+	if ((substr($filename, 0, 1) == '.') && (substr_count($filename, '.') == 1)){
 		return '';
 	}
-	return array_pop(explode('.', $filename));
+	$expl = explode('.', $filename);
+	if (count($expl) >1){
+		return array_pop($expl);
+	}
+	else{
+		return '';
+	}
 }
 
 function removeExtension($filename){
-	if (substr($filename, 0, 1) == '.'){
+	if ((substr($filename, 0, 1) == '.') && (substr_count($filename, '.') == 1)){
 		return $filename;
 	}
 	$arr = explode('.', $filename);
-	array_pop($arr);
+	if (count($arr)>1){
+		array_pop($arr);
+	}
 	return implode('.', $arr);
 	
 }

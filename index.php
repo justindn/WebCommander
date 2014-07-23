@@ -20,7 +20,7 @@ include 'config.php';
 		//Предыдущее местоположение курсора. Объект DOM со строкой таблицы.
 		var prev_line;
 		
-		var sep = '\\';
+		var sep = '/';
 		//Активная панель
 		init();
 		//Данные панелей
@@ -52,7 +52,7 @@ include 'config.php';
 			'title' : function (title){
 				this.progress_title.html(title);
 			}, 
-			value   : function(val){
+			'value'   : function(val){
 				if (typeof (val) == 'undefined' || val == 0){
 					return;
 				}
@@ -86,6 +86,23 @@ include 'config.php';
 				renderPanel(panels[1]);
 			});
 		}
+		
+		//Service functions
+		function getCurrentFolderName(){
+			
+			var foundPos = 0;
+			
+			while (true){
+				var foundPos = panels[panels.isActive].folder.indexOf('\\', ++foundPos);
+				//var foundPos = panels[panels.isActive].folder.indexOf(sep, ++foundPos);
+				if (foundPos == -1) break;
+				var lastPos = foundPos;
+
+			}
+			return panels[panels.isActive].folder.substr(lastPos+1);
+			
+		}
+		
 		//Функция отрисовки панели со списком файлов. Передается объект - панель из panels
 		function renderPanel(panel, cursorPosition){
 			if (typeof line != 'undefined'){
@@ -118,16 +135,25 @@ include 'config.php';
 						'</div></div>');
 				}
 				
-				if (lineNumber === 'undefined'){
+				/* if (lineNumber === 'undefined') { */
+				if (typeof cursorPosition === 'undefined'){
 					line = panels[panels.isActive].object.children('.panel_row:eq(0)');
 				}
 				else{
-					
-					line = panels[panels.isActive].object.children('.panel_row:eq(' + lineNumber + ')');
+					line = panels[panels.isActive].object.children('[data-filename=' + cursorPosition+ ']');
 					if (line.length == 0){
 						line = panels[panels.isActive].object.children('.panel_row:eq(0)');
 					}
 				}
+				
+				/* }
+				else {
+					line = panels[panels.isActive].object.children('.panel_row:eq(' + lineNumber + ')');
+					if (line.length == 0){
+						line = panels[panels.isActive].object.children('.panel_row:eq(0)');
+					}
+				} */
+				
 				drawCursor(line);
 
 			});
@@ -160,12 +186,13 @@ include 'config.php';
 		/*Mouse Events*/
 		$('.panel_list').click(function(event){
 			event.preventDefault();
-			drawCursor($(event.target).parent());
+			if ($(event.target).attr('class') == 'panel_cell'){
+				drawCursor($(event.target).parent());
+			}
 		});
 		
 		$('.panel_list').contextmenu(function(event){
 			event.preventDefault();
-			
 			if ($(event.target).prop('class') == 'panel_cell'){
 				selectLine($(event.target).parent());
 				drawCursor($(event.target).parent());
@@ -173,13 +200,21 @@ include 'config.php';
 		});
 		
 		$('.panel_list').dblclick(function(event){
+			var cursorPosition;
 			event.preventDefault();
-			drawCursor($(event.target).parent());
-			if (line.attr('data-is-folder') === 'true'){
-
-				panels[panels.isActive].folder = line.attr('data-folder');
-				renderPanel(panels[panels.isActive]);
+			if ($(event.target).attr('class') == 'panel_cell'){
+				drawCursor($(event.target).parent());
+				if (line.attr('data-filename') === '..'){
+					cursorPosition = getCurrentFolderName();
+				}
+				if (line.attr('data-is-folder') === 'true'){
+					panels[panels.isActive].folder = line.attr('data-folder');
+					renderPanel(panels[panels.isActive]);
+				}
 			}
+
+
+			
 		});
 		
 		/*Interface Functions*/
@@ -263,12 +298,12 @@ include 'config.php';
 		function getDirSize(dir, writeTo){
 			writeTo.html('...');
 			$.ajax({
-						cache : false, 
-						type  : 'POST',
-						url   : 'operations.php',
-						data  : 'action=calcsize&path=' + dir,
-					}).done(function (data){
-						writeTo.html(data);
+					cache : false, 
+					type  : 'POST',
+					url   : 'operations.php',
+					data  : 'action=calcsize&path=' + dir,
+				}).done(function (data){
+					writeTo.html(data);
 			});	
 			
 		}
@@ -312,7 +347,7 @@ include 'config.php';
 							if (typeof(result.message) != "undefined"){
 								alert(filesList[i].fullname + ': \n' + result.message);
 							}
-							progressWindow.value(i*100/quantity);
+							progressWindow.value((i+1)*100/quantity);
 						});
 					}
 				} 
@@ -328,8 +363,14 @@ include 'config.php';
 			
 		}
 		function copy(){
+			if (panels.another().folder == panels.active().folder){
+					alert('Cannot copy files to itself!');
+					return;
+			} 
+			
 			var filesList = getSelectedFiles();
 			var quantity = filesList.length;
+
 			if (confirm ('Are you really want to copy ' + quantity + ' file(s)?')){
 				progressWindow.show();
 				for (i=0; i<quantity; i++){
@@ -339,14 +380,9 @@ include 'config.php';
 					else{
 						var copy_to = panels.another().folder + sep + filesList[i].filename + '.' + filesList[i].extension;
 						var copy_from = filesList[i].fullname;
-						if (panels.another().folder == panels.active().folder){
-							alert('Cannot copy files to itself!');
-							progressWindow.hide();
-							return;
-						}
+
 						progressWindow.title('Copying: ' + filesList[i].fullname);
-						
-						 $.ajax({
+						$.ajax({
 							cache : false, 
 							type  : 'POST',
 							url   : 'copy.php',
@@ -363,7 +399,8 @@ include 'config.php';
 							if (data == '2'){
 								alert('File already exist!');
 							}
-							progressWindow.value(i*100/quantity);
+							
+							progressWindow.value((i+1)*100/quantity);
 						}); 
 					}
 				} 
@@ -373,6 +410,11 @@ include 'config.php';
 			renderPanel(panels.another());
 		}
 		function move(){
+			if (panels.another().folder == panels.active().folder){
+					alert('Cannot move files to itself!');
+					progressWindow.hide();
+					return;
+			}
 			var filesList = getSelectedFiles();
 			var quantity = filesList.length;
 			if (confirm ('Are you really want to move ' + quantity + ' file(s)?')){
@@ -384,11 +426,7 @@ include 'config.php';
 					else{
 						var copy_to = panels.another().folder + sep + filesList[i].filename + '.' + filesList[i].extension;
 						var copy_from = filesList[i].fullname;
-						if (panels.another().folder == panels.active().folder){
-							alert('Cannot move files to itself!');
-							progressWindow.hide();
-							return;
-						}
+
 						progressWindow.title('Moving: ' + filesList[i].fullname);
 						
 						 $.ajax({
@@ -408,7 +446,7 @@ include 'config.php';
 							if (data == '2'){
 								alert('File already exist!');
 							}
-							progressWindow.value(i*100/quantity);
+							progressWindow.value((i+1)*100/quantity);
 						}); 
 					}
 				} 
@@ -417,52 +455,27 @@ include 'config.php';
 			renderPanel(panels.active());
 			renderPanel(panels.another());
 		}
-/* 		function show_progress(title){
-			if(confirm('Do you really want to ' + title + ' these files?')){
-				var copy_to = panels.another().folder + '\\' + line.attr('data-filename') + '.' + line.attr('data-extension');
-				var copy_from = line.attr('data-folder');
-				
-				if (copy_from == copy_to){
-					alert('Cannot copy file to itself!');
-					return;
-				}
-				if (typeof(title) == 'undefined') title='';
-				$('#progress header').html(title);
-				$('#progress').show();
-					$.ajax({
-					cache : false, 
-					type  : 'POST',
-					url   : 'copy.php',
-					data  : 'from=' + copy_from + '&to=' + copy_to + '&overwrite=0',
-					}).done(function (data){
-						if (data == ''){
-							alert('Copy error');
-						}
-						if (data == '2'){
-							alert('File already exist!');
-						}
-						$('#progress').hide();
-						renderPanel(panels.another());
-					});	
-			}
-		} */
-		
+
 		/*Viewer functions*/
+		
 		function show_viewer(){
+			
 			if (line.attr('data-is-folder') != 'true'){
-						$('#viewer_header').html(line.attr('data-folder') + '/' + line.attr('data-filename'));
-						$('#viewer_content').html('');
-						$('#viewer').toggle();
-					
-						$.ajax({
-							cache : false, 
-							type  : 'POST',
-							url   : 'operations.php',
-							data  : 'action=getfile&folder=' + line.attr('data-folder'),
-						}).done(function (data){
-							$('#viewer_content').html('<pre>' + data + '</pre>');
-						});	
-			}
+				$('#viewer_header').html(line.attr('data-folder'));
+				$('#viewer_content').attr('src', '');
+				$('#viewer').toggle();
+				$('#viewer_content').attr('src', 'operations.php?action=getfile&folder=' + line.attr('data-folder'));
+				 /* $.ajax({
+					cache : false,
+					type  : 'POST',
+					url   : 'operations.php',
+					data  : 'action=getfile&folder=' + line.attr('data-folder'),
+				}).done(function (data){
+					$('#viewer_content').html('<pre>' + data + '</pre>');
+				});	  */
+			} 
+			
+			$('#viewer_content').focus();
 		}
 		
 		function hide_viewer(){
@@ -497,7 +510,6 @@ include 'config.php';
 		/*Keyboard Shortcuts*/
 		
 		$('body').keydown(function(event){
-
 			//alert(event.keyCode);
 			event.preventDefault();
 			switch (event.keyCode){
@@ -506,28 +518,64 @@ include 'config.php';
 					drawCursor(line.next());
 					break;
 				case 33: //PageUp
+					if ($('#viewer').css('display') == 'block'){
+						var scroll = +$('#viewer_content').prop('scrollTop') - +$('#viewer_content').prop('clientHeight');
+						$('#viewer_content').animate({scrollTop: scroll}, 1);
+						return false;
+					}
 					var line_height = parseInt(line.css('height'));
 					var jump_to = line.index() - Math.round((panels.active().object.prop('clientHeight')/ line_height) - 1);
 					drawCursor(getPageScrollLine(jump_to, 'up'));
 					panelScrollTo (jump_to * line_height);
 					break;
-				case 34: //PageDown
 					
+				case 34: //PageDown
+					if ($('#viewer').css('display') == 'block'){
+						var scroll = +$('#viewer_content').prop('scrollTop') + +$('#viewer_content').prop('clientHeight');
+						$('#viewer_content').animate({scrollTop: scroll}, 1);
+						return false;
+					}
 					//Переменная, содержащая количество строк на панель + номер текущей строки
 					var jump_to = line.index() + Math.round((panels.active().object.prop('clientHeight')/ parseInt(line.css('height'))) - 1);
 					drawCursor(getPageScrollLine(jump_to, 'down'));
 					panelScrollTo (jump_to * parseInt(line.css('height')));
 					break;
+					
 				case 35: //End
+					
 					panelScrollBottom();
 					drawCursor(line.parent().children().last());
 					break;
+					
 				case 36: //Home
 					drawCursor(line.parent().children().first());
 					panelScrollTop();
 					break;
+					
+				case 37: //Left
+					/* if ($('#viewer').css('display') == 'block'){
+						var scroll = +$('#viewer_content').prop('scrollLeft') - 10;
+						$('#viewer_content').animate({scrollLeft: scroll}, 1);
+						return false;
+					} */
+					break;
+					
+				case 39: //Right
+					/* if ($('#viewer').css('display') == 'block'){
+						var scroll = +$('#viewer_content').prop('scrollLeft') + 10;
+						$('#viewer_content').animate({scrollLeft: scroll}, 1);
+						return false;
+					} */
+					break;
+					
 				case 38:
 					//Up
+					
+				/* 	if ($('#viewer').css('display') == 'block'){
+						var scroll = +$('#viewer_content').prop('scrollTop') - 10;
+						$('#viewer_content').animate({scrollTop: scroll}, 1);
+						return false;
+					} */
 					if (event.shiftKey){
 						line.toggleClass ('selected');
 					}
@@ -536,12 +584,18 @@ include 'config.php';
 					
 				case 40:
 					//down
+					/* if ($('#viewer').css('display') == 'block'){
+						var scroll = +$('#viewer_content').prop('scrollTop') + 10;
+						$('#viewer_content').animate({scrollTop: scroll}, 1);
+						return false;
+					} */
 					if (event.shiftKey){
 						line.toggleClass ('selected');
 					}
 					drawCursor(line.next());
 					
 					break;
+					
 				case 9: //Tab
 					panels.isActive = panels.getSibling();
 					
@@ -549,14 +603,15 @@ include 'config.php';
 					break;
 				case 13:
 					drawCursor(line);
+					var cursorPosition;
+					if (line.attr('data-filename') === '..'){
+						cursorPosition = getCurrentFolderName();
+					}
 					if (line.attr('data-is-folder') === 'true'){
 						panels[panels.isActive].folder = line.attr('data-folder');
-						renderPanel(panels[panels.isActive]);
+						renderPanel(panels[panels.isActive], cursorPosition);
 					}
-					/*TODO*/
-					/*
-					Выход из папки с установкой курсора на ней самой
-					*/
+					
 					break;
 				case 27:
 					$('#viewer').hide();
@@ -609,9 +664,9 @@ include 'config.php';
 		<span id='viewer_header'></span>
 		<div id='viewer_close'>&times;</div>
 	</header>
-	<div id='viewer_content'>
+	<iframe id='viewer_content'>
 		text
-	</div>
+	</iframe>
 </div>
 <div id = 'container'>
 	<div id = 'toolbar'></div>
