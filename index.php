@@ -487,6 +487,49 @@ include 'config.php';
 		});
 
 		
+		/*Editor functions*/
+		
+		function show_editor(){
+			
+			if (line.attr('data-is-folder') != 'true'){
+				$('#editor_header').html(line.attr('data-folder'));
+				$('#editor_content').html('');
+				$('#editor').toggle();
+				//$('#editor_content').attr('src', 'operations.php?action=getfile&folder=' + line.attr('data-folder'));
+				 $.ajax({
+					cache : false,
+					type  : 'POST',
+					url   : 'editor.php',
+					data  : 'action=get&file=' + line.attr('data-folder'),
+				}).done(function (data){
+					$('#editor_content').html(data);
+				});	  
+			} 
+			
+			$('#editor_content').focus();
+		}
+		function hide_editor(){
+			$('#editor').hide();
+		}
+		
+		$('#editor_close').click(function(){
+			hide_editor();
+		});
+		
+		function editorSaveFile(){
+			var filename = $('#editor_header').html();
+			$('#editor_header').html('Saving...');
+			$.ajax({
+					cache : false,
+					type  : 'POST',
+					url   : 'editor.php',
+					data  : 'action=save&file=' + line.attr('data-folder') + '&content=' + $('#editor_content').html(),
+				}).done(function (data){
+					$('#editor_header').html(filename);
+					alert('Сохранено');
+				});	  
+		}
+		
 		/*functional buttons functions*/
 		$('#f2').click(function(){
 			rename();
@@ -510,7 +553,19 @@ include 'config.php';
 		/*Keyboard Shortcuts*/
 		
 		$('body').keydown(function(event){
-			//alert(event.keyCode);
+			alert(event.keyCode);
+			if ($(event.target).attr('id') == 'editor_content'){
+				switch (event.keyCode){
+					case 27:
+						event.preventDefault();
+						$('#editor').hide();
+						return false;
+					case 83:
+						event.preventDefault();
+						editorSaveFile();
+						return false;
+				}
+			}
 			event.preventDefault();
 			switch (event.keyCode){
 				case 45: //Insert
@@ -621,6 +676,9 @@ include 'config.php';
 					break;
 				case 114: //F3
 					show_viewer();
+					break;
+				case 115: //F3
+					show_editor();
 					break;
 				case 116: //F5
 					copy();
@@ -734,7 +792,15 @@ include 'config.php';
 
 		</div>
 	</div>-->
-	
+</div>
+<div id='editor'>
+	<header>
+		<span id='editor_header'></span>
+		<div id='editor_close'>&times;</div>
+	</header>
+	<textarea id='editor_content'>
+
+	</textarea>
 </div>
 </body>
 </html>

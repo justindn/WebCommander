@@ -123,6 +123,13 @@
 	}
 	#bottom_panel button{
 		width:13.5%;
+		height:80%;
+		padding:0;
+	}
+	@media screen and (max-width:1024px){
+		#bottom_panel button{
+			font-size:0.8em;
+		}
 	}
 	.filename{
 		text-indent:16px;
@@ -140,7 +147,7 @@
 	}
 	
 	/* VIEWER */
-	#viewer{
+	#viewer, #editor{
 		width:98%;
 		height:97%;
 		position:fixed;
@@ -155,12 +162,12 @@
 		z-index:10;
 		display:none;
 	}
-	#viewer>header{
+	#viewer>header, #editor>header{
 		height:20px;
 		background-color:#0A246A;
 		color:#fff;
 	}
-	#viewer_close{
+	#viewer_close, #editor_close{
 		width:14px;
 		height:14px;
 		background-color:#D4D0C8;
@@ -175,7 +182,7 @@
 		cursor:pointer;
 		
 	}
-	#viewer_close:active{
+	#viewer_close:active, #editor_close:active{
 		border:1px solid;
 		border-color:#808080 #fff #fff #808080;
 	}
@@ -248,4 +255,19 @@
 		margin:auto;
 		display:block;
 		z-index:5;
+	}
+	
+	/*Editor styles*/
+	
+	#editor_content{
+		width:99%;
+		height:94%;
+		margin:auto;
+		background-color:#ffffff;
+		border:1px solid;
+		border-color:#808080 #fff #fff #808080;
+		z-index:10;
+		overflow:auto;
+		font-family:'Courier New', monotype !important;
+		padding:0 0.5%;
 	}

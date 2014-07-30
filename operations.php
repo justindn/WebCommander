@@ -54,8 +54,9 @@ switch ($_GET['action']){
 					echo $file;
 					break;
 				default:
+					header('Content-Type: text/html; charset= utf-8'); 
 					$file = iconv('UTF-8', mb_detect_encoding (file_get_contents($_GET['folder'])), $file);
-					echo '<pre>' . htmlentities($file) . '</pre>';
+					echo '<pre>' . htmlentities($file, ENT_QUOTES, 'UTF-8') . '</pre>';
 			}
 }
 
