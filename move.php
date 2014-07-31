@@ -6,6 +6,6 @@ if (file_exists($_POST['to'])){
 }
 echo copy ($_POST['from'], $_POST['to']);
 unlink ($_POST['from']);
-
+//
 
 ?>

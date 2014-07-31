@@ -1,5 +1,5 @@
 <?php
-header('content-type:text/html;charset=utf-8');
+header('Content-type:text/html;charset=utf-8');
 include './lang/ru.php';
 include 'config.php';
 ?>
@@ -493,7 +493,7 @@ include 'config.php';
 			
 			if (line.attr('data-is-folder') != 'true'){
 				$('#editor_header').html(line.attr('data-folder'));
-				$('#editor_content').html('');
+				$('#editor_content').val('');
 				$('#editor').toggle();
 				//$('#editor_content').attr('src', 'operations.php?action=getfile&folder=' + line.attr('data-folder'));
 				 $.ajax({
@@ -502,7 +502,7 @@ include 'config.php';
 					url   : 'editor.php',
 					data  : 'action=get&file=' + line.attr('data-folder'),
 				}).done(function (data){
-					$('#editor_content').html(data);
+					$('#editor_content').val(data);
 				});	  
 			} 
 			
@@ -519,15 +519,16 @@ include 'config.php';
 		function editorSaveFile(){
 			var filename = $('#editor_header').html();
 			$('#editor_header').html('Saving...');
-			$.ajax({
+			
+			 $.ajax({
 					cache : false,
 					type  : 'POST',
 					url   : 'editor.php',
-					data  : 'action=save&file=' + line.attr('data-folder') + '&content=' + $('#editor_content').html(),
+					data  : 'action=save&file=' + line.attr('data-folder') + '&content=' + $('#editor_content').val(),
 				}).done(function (data){
 					$('#editor_header').html(filename);
 					alert('Сохранено');
-				});	  
+				});	
 		}
 		
 		/*functional buttons functions*/
@@ -552,164 +553,177 @@ include 'config.php';
 		
 		/*Keyboard Shortcuts*/
 		
-		$('body').keydown(function(event){
-			alert(event.keyCode);
+		$('#editor').keydown(function(event){
+			event.stopPropagation();
 			if ($(event.target).attr('id') == 'editor_content'){
 				switch (event.keyCode){
-					case 27:
+					case 115: //F4
+					case 27: //Esc
 						event.preventDefault();
 						$('#editor').hide();
-						return false;
-					case 83:
-						event.preventDefault();
-						editorSaveFile();
-						return false;
+						$('#editor_content').blur();
+						var cursorPosition = line.attr('data-filename');
+						renderPanel(panels.active(), cursorPosition);
+						/*panelScrollTop();*/
+					case 83: //Ctrl+S
+						
+						if (event.ctrlKey){
+							event.preventDefault();
+							editorSaveFile();
+							return false;
+						}
+						break;
+						
 				}
 			}
-			event.preventDefault();
-			switch (event.keyCode){
-				case 45: //Insert
-					selectLine(line);
-					drawCursor(line.next());
-					break;
-				case 33: //PageUp
-					if ($('#viewer').css('display') == 'block'){
-						var scroll = +$('#viewer_content').prop('scrollTop') - +$('#viewer_content').prop('clientHeight');
-						$('#viewer_content').animate({scrollTop: scroll}, 1);
-						return false;
-					}
-					var line_height = parseInt(line.css('height'));
-					var jump_to = line.index() - Math.round((panels.active().object.prop('clientHeight')/ line_height) - 1);
-					drawCursor(getPageScrollLine(jump_to, 'up'));
-					panelScrollTo (jump_to * line_height);
-					break;
 					
-				case 34: //PageDown
-					if ($('#viewer').css('display') == 'block'){
-						var scroll = +$('#viewer_content').prop('scrollTop') + +$('#viewer_content').prop('clientHeight');
-						$('#viewer_content').animate({scrollTop: scroll}, 1);
-						return false;
-					}
-					//Переменная, содержащая количество строк на панель + номер текущей строки
-					var jump_to = line.index() + Math.round((panels.active().object.prop('clientHeight')/ parseInt(line.css('height'))) - 1);
-					drawCursor(getPageScrollLine(jump_to, 'down'));
-					panelScrollTo (jump_to * parseInt(line.css('height')));
-					break;
-					
-				case 35: //End
-					
-					panelScrollBottom();
-					drawCursor(line.parent().children().last());
-					break;
-					
-				case 36: //Home
-					drawCursor(line.parent().children().first());
-					panelScrollTop();
-					break;
-					
-				case 37: //Left
-					/* if ($('#viewer').css('display') == 'block'){
-						var scroll = +$('#viewer_content').prop('scrollLeft') - 10;
-						$('#viewer_content').animate({scrollLeft: scroll}, 1);
-						return false;
-					} */
-					break;
-					
-				case 39: //Right
-					/* if ($('#viewer').css('display') == 'block'){
-						var scroll = +$('#viewer_content').prop('scrollLeft') + 10;
-						$('#viewer_content').animate({scrollLeft: scroll}, 1);
-						return false;
-					} */
-					break;
-					
-				case 38:
-					//Up
-					
-				/* 	if ($('#viewer').css('display') == 'block'){
-						var scroll = +$('#viewer_content').prop('scrollTop') - 10;
-						$('#viewer_content').animate({scrollTop: scroll}, 1);
-						return false;
-					} */
-					if (event.shiftKey){
-						line.toggleClass ('selected');
-					}
-					drawCursor(line.prev());
-					break;
-					
-				case 40:
-					//down
-					/* if ($('#viewer').css('display') == 'block'){
-						var scroll = +$('#viewer_content').prop('scrollTop') + 10;
-						$('#viewer_content').animate({scrollTop: scroll}, 1);
-						return false;
-					} */
-					if (event.shiftKey){
-						line.toggleClass ('selected');
-					}
-					drawCursor(line.next());
-					
-					break;
-					
-				case 9: //Tab
-					panels.isActive = panels.getSibling();
-					
-					drawCursor();
-					break;
-				case 13:
-					drawCursor(line);
-					var cursorPosition;
-					if (line.attr('data-filename') === '..'){
-						cursorPosition = getCurrentFolderName();
-					}
-					if (line.attr('data-is-folder') === 'true'){
-						panels[panels.isActive].folder = line.attr('data-folder');
-						renderPanel(panels[panels.isActive], cursorPosition);
-					}
-					
-					break;
-				case 27:
-					$('#viewer').hide();
-					break;
-				case 113: //F2
-					rename();
-					break;
-				case 114: //F3
-					show_viewer();
-					break;
-				case 115: //F3
-					show_editor();
-					break;
-				case 116: //F5
-					copy();
-					break;
-				case 117: //F6
-					move();
-					break;
-				case 118: //F7
-					newdir();
-					break;
-				
-				case 119: //F8
-				case 46:  //Delete
-					unlink();
-					break;
-				
-				case 82:  //Ctrl + R
-					if (event.ctrlKey){
-						renderPanel(panels.active());
-					}
-					break;
-				case 32:  //Space
-					line.toggleClass('selected');
-					if (isNaN(parseInt(line.children('div:eq(2)').html()))){
-						if (line.attr('data-is-folder') == 'true'){
-							getDirSize(line.attr('data-folder'), line.children('div:eq(2)'));
+		});
+		$('body').keydown(function(event){
+			//alert(event.keyCode);
+
+				event.preventDefault();
+				switch (event.keyCode){
+					case 45: //Insert
+						selectLine(line);
+						drawCursor(line.next());
+						break;
+					case 33: //PageUp
+						if ($('#viewer').css('display') == 'block'){
+							var scroll = +$('#viewer_content').prop('scrollTop') - +$('#viewer_content').prop('clientHeight');
+							$('#viewer_content').animate({scrollTop: scroll}, 1);
+							return false;
 						}
-					}
-					break;
-			}
-			return false;
+						var line_height = parseInt(line.css('height'));
+						var jump_to = line.index() - Math.round((panels.active().object.prop('clientHeight')/ line_height) - 1);
+						drawCursor(getPageScrollLine(jump_to, 'up'));
+						panelScrollTo (jump_to * line_height);
+						break;
+						
+					case 34: //PageDown
+						if ($('#viewer').css('display') == 'block'){
+							var scroll = +$('#viewer_content').prop('scrollTop') + +$('#viewer_content').prop('clientHeight');
+							$('#viewer_content').animate({scrollTop: scroll}, 1);
+							return false;
+						}
+						//Переменная, содержащая количество строк на панель + номер текущей строки
+						var jump_to = line.index() + Math.round((panels.active().object.prop('clientHeight')/ parseInt(line.css('height'))) - 1);
+						drawCursor(getPageScrollLine(jump_to, 'down'));
+						panelScrollTo (jump_to * parseInt(line.css('height')));
+						break;
+						
+					case 35: //End
+						panelScrollBottom();
+						drawCursor(line.parent().children().last());
+						break;
+						
+					case 36: //Home
+						drawCursor(line.parent().children().first());
+						panelScrollTop();
+						break;
+						
+					case 37: //Left
+						/* if ($('#viewer').css('display') == 'block'){
+							var scroll = +$('#viewer_content').prop('scrollLeft') - 10;
+							$('#viewer_content').animate({scrollLeft: scroll}, 1);
+							return false;
+						} */
+						break;
+						
+					case 39: //Right
+						/* if ($('#viewer').css('display') == 'block'){
+							var scroll = +$('#viewer_content').prop('scrollLeft') + 10;
+							$('#viewer_content').animate({scrollLeft: scroll}, 1);
+							return false;
+						} */
+						break;
+						
+					case 38:
+						//Up
+						
+					/* 	if ($('#viewer').css('display') == 'block'){
+							var scroll = +$('#viewer_content').prop('scrollTop') - 10;
+							$('#viewer_content').animate({scrollTop: scroll}, 1);
+							return false;
+						} */
+						if (event.shiftKey){
+							line.toggleClass ('selected');
+						}
+						drawCursor(line.prev());
+						break;
+						
+					case 40:
+						//down
+						/* if ($('#viewer').css('display') == 'block'){
+							var scroll = +$('#viewer_content').prop('scrollTop') + 10;
+							$('#viewer_content').animate({scrollTop: scroll}, 1);
+							return false;
+						} */
+						if (event.shiftKey){
+							line.toggleClass ('selected');
+						}
+						drawCursor(line.next());
+						
+						break;
+						
+					case 9: //Tab
+						panels.isActive = panels.getSibling();
+						
+						drawCursor();
+						break;
+					case 13:
+						drawCursor(line);
+						var cursorPosition;
+						if (line.attr('data-filename') === '..'){
+							cursorPosition = getCurrentFolderName();
+						}
+						if (line.attr('data-is-folder') === 'true'){
+							panels[panels.isActive].folder = line.attr('data-folder');
+							renderPanel(panels[panels.isActive], cursorPosition);
+						}
+						
+						break;
+					case 27:
+						$('#viewer').hide();
+						break;
+					case 113: //F2
+						rename();
+						break;
+					case 114: //F3
+						show_viewer();
+						break;
+					case 115: //F4
+						show_editor();
+						break;
+					case 116: //F5
+						copy();
+						break;
+					case 117: //F6
+						move();
+						break;
+					case 118: //F7
+						newdir();
+						break;
+					
+					case 119: //F8
+					case 46:  //Delete
+						unlink();
+						break;
+					
+					case 82:  //Ctrl + R
+						if (event.ctrlKey){
+							renderPanel(panels.active());
+						}
+						break;
+					case 32:  //Space
+						line.toggleClass('selected');
+						if (isNaN(parseInt(line.children('div:eq(2)').html()))){
+							if (line.attr('data-is-folder') == 'true'){
+								getDirSize(line.attr('data-folder'), line.children('div:eq(2)'));
+							}
+						}
+						break;
+				}
+				return false;
 		});
 	});
 	

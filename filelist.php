@@ -33,6 +33,8 @@ function getFiles($folder) {
 	global $up_icon;
 	global $file_icon;
 
+	clearstatcache();
+	
 	$list = scandir($folder);
 	
 	$dir_array = array();
@@ -44,7 +46,7 @@ function getFiles($folder) {
 			$file_array = array();
 			$file_array['name'] = removeExtension($filename);
 			$file_array['fullpath'] = realpath($filename);
-			$file_array['datetime'] = date('d.m.Y h:m:s', filectime($folder . $filename));
+			$file_array['datetime'] = date('d.m.Y h:m:s', filemtime($folder . $filename));
 
 			if (is_dir($filename)) {
 				
