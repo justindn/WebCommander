@@ -140,7 +140,7 @@ include 'config.php';
 					line = panels[panels.isActive].object.children('.panel_row:eq(0)');
 				}
 				else{
-					line = panels[panels.isActive].object.children('[data-filename=' + cursorPosition+ ']');
+					line = panels[panels.isActive].object.children('[data-filename="' + cursorPosition+ '"]');
 					if (line.length == 0){
 						line = panels[panels.isActive].object.children('.panel_row:eq(0)');
 					}
@@ -476,6 +476,15 @@ include 'config.php';
 			} 
 			
 			$('#viewer_content').focus();
+			$('#viewer_content').contentDocument.keydown(function(event){
+			event.stopPropagation();
+			switch (event.keyCode){
+					case 114: //F3
+					case 27: //Esc
+						event.preventDefault();
+						$('#viewer').hide();
+				}
+			});
 		}
 		
 		function hide_viewer(){
@@ -538,6 +547,9 @@ include 'config.php';
 		$('#f3').click(function(){
 			show_viewer();
 		});
+		$('#f4').click(function(){
+			show_editor();
+		});
 		$('#f5').click(function(){
 			copy();
 		});
@@ -561,9 +573,9 @@ include 'config.php';
 					case 27: //Esc
 						event.preventDefault();
 						$('#editor').hide();
-						$('#editor_content').blur();
 						var cursorPosition = line.attr('data-filename');
 						renderPanel(panels.active(), cursorPosition);
+						$('#editor_content').blur();
 						/*panelScrollTop();*/
 					case 83: //Ctrl+S
 						
@@ -578,6 +590,7 @@ include 'config.php';
 			}
 					
 		});
+		
 		$('body').keydown(function(event){
 			//alert(event.keyCode);
 
@@ -658,10 +671,19 @@ include 'config.php';
 							$('#viewer_content').animate({scrollTop: scroll}, 1);
 							return false;
 						} */
+						var line_height = parseInt(line.css('height'));
+						var lines_on_screen = Math.floor(parseInt(panels.active().object.prop('clientHeight'))/line_height) - 5;
 						if (event.shiftKey){
 							line.toggleClass ('selected');
 						}
 						drawCursor(line.next());
+
+						if (line.index() > lines_on_screen){
+							var scroll = +panels.active().object.prop('scrollTop') + line_height + 2;
+							panelScrollTo(scroll);
+							return false;
+						
+						}
 						
 						break;
 						
@@ -670,7 +692,7 @@ include 'config.php';
 						
 						drawCursor();
 						break;
-					case 13:
+					case 13: //Enter
 						drawCursor(line);
 						var cursorPosition;
 						if (line.attr('data-filename') === '..'){
